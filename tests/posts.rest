@@ -19,3 +19,6 @@ Content-Type: application/json
 
 GET http://127.0.0.1:8000/posts/4/
 
+### Get a the posts from a user
+
+GET http://127.0.0.1:8000/users/1/posts/

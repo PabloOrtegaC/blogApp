@@ -113,6 +113,14 @@ def get_post(post_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Post not found")
     return post
 
+#get a specific post using user id
+@app.get("/users/{author_id}/posts", response_model=List[PostResponse])
+def get_users_posts(author_id: int, db: Session = Depends(get_db)):
+    posts = db.query(Post).filter(Post.author_id == author_id).all()
+    if not posts:
+        raise HTTPException(status_code=404, detail="No posts found")
+    return posts
+
 
 # get all posts
 @app.get("/posts/", response_model=List[PostResponse])
