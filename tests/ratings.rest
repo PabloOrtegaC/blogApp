@@ -1,0 +1,16 @@
+
+###Create a rating
+
+POST http://127.0.0.1:8000/ratings/create/
+Content-Type: application/json
+
+{
+    "score": 4,
+    "user_id": 2,
+    "post_id": 1
+}
+
+###Get a the ratings from a specific post
+
+GET http://127.0.0.1:8000/posts/1/ratings
+

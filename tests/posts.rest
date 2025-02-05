@@ -3,3 +3,19 @@
 GET http://127.0.0.1:8000/posts/
 
 
+###Create a post
+
+POST http://127.0.0.1:8000/posts/create/
+Content-Type: application/json
+
+{
+    "title": "Post3",
+    "content": "Post content",
+    "author_id": 1,
+    "tag_ids": [1,2,3]
+}
+
+###Get a specific post
+
+GET http://127.0.0.1:8000/posts/4/
+

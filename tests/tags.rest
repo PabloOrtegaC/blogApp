@@ -1,0 +1,13 @@
+
+#Get all tags
+GET http://127.0.0.1:8000/tags/
+
+
+###Create a tag
+
+POST http://127.0.0.1:8000/tags/create/
+Content-Type: application/json
+
+{
+    "name": "funny"
+}
