@@ -3,8 +3,8 @@ from sqlalchemy.orm import Session
 from typing import List
 from pydantic import BaseModel, EmailStr
 
-from database import engine, get_db, Base, SessionLocal
-from models import User, Post, Tag, Rating
+from app.database import engine, get_db, Base, SessionLocal
+from app.models import User, Post, Tag, Rating
 
 app = FastAPI()
 
