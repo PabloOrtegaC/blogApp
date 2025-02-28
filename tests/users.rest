@@ -10,10 +10,19 @@ Content-Type: application/json
 
 {
     "name": "testuser",
-    "email": "testuser@gmail.com"
+    "email": "testuser@gmail.com",
+    "password": "abc123"
 }
 
 ###Get a specific post
 
-GET http://127.0.0.1:8000/users/4/
+GET http://127.0.0.1:8000/users/1/
 
+
+
+###
+
+POST http://127.0.0.1:8000/token/
+Content-Type: application/x-www-form-urlencoded
+
+username=testuser@gmail.com&password=abc123

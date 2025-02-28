@@ -3,12 +3,13 @@
 
 POST http://127.0.0.1:8000/ratings/create/
 Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0dXNlckBnbWFpbC5jb20iLCJleHAiOjE3NDA3Nzc3MDV9.HWvpYnYH5zko3G3XydUQ3mZOWedk4YniIT4GYsEM85w
 
 {
-    "score": 4,
-    "user_id": 2,
+    "score": 5,
     "post_id": 1
 }
+
 
 ###Get a the ratings from a specific post
 

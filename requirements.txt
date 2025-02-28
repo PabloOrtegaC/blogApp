@@ -3,3 +3,7 @@ fastapi==0.115.8
 pip-chill==1.0.3
 sqlalchemy==2.0.37
 uvicorn==0.34.0
+PyJWT==2.10.1
+python-multipart
+bcrypt==4.3.0 
+passlib==1.7.4

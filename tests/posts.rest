@@ -7,18 +7,38 @@ GET http://127.0.0.1:8000/posts/
 
 POST http://127.0.0.1:8000/posts/create/
 Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0dXNlckBnbWFpbC5jb20iLCJleHAiOjE3NDA3Nzc3MDV9.HWvpYnYH5zko3G3XydUQ3mZOWedk4YniIT4GYsEM85w
 
 {
     "title": "Post3",
     "content": "Post content",
-    "author_id": 1,
-    "tag_ids": [1,2,3]
+    "tags": ["tag1", "tag2"]
 }
+
 
 ###Get a specific post
 
 GET http://127.0.0.1:8000/posts/4/
 
 ### Get a the posts from a user
+GET http://127.0.0.1:8000/users/me/posts/
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0dXNlckBnbWFpbC5jb20iLCJleHAiOjE3NDA3Nzc3MDV9.HWvpYnYH5zko3G3XydUQ3mZOWedk4YniIT4GYsEM85w
 
-GET http://127.0.0.1:8000/users/1/posts/
+
+
+### edit post
+PUT http://127.0.0.1:8000/posts/1/
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0dXNlcjJAZ21haWwuY29tIiwiZXhwIjoxNzQwNzY5NDIwfQ.opu2e_9KoxU2Vg7W6am89tfchK1zaByVkaFsFB7YjQY
+
+{
+    "title": "Updated Post Title",
+    "content": "Updated content",
+    "tags": ["Python", "FastAPI", "NewTag"]
+}
+
+
+### delete post
+DELETE http://127.0.0.1:8000/posts/1/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0dXNlcjJAZ21haWwuY29tIiwiZXhwIjoxNzQwNzY5NDIwfQ.opu2e_9KoxU2Vg7W6am89tfchK1zaByVkaFsFB7YjQY
