@@ -13,6 +13,6 @@ python -m uvicorn main:app --reload
 
 ## Video Demo
 
-https://youtu.be/gtwrYzI8PWU
+https://youtu.be/CseA9MMoa4Y
 
 
