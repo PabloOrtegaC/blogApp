@@ -1,4 +1,4 @@
-# bloggApp
+## Run blogApp
 
 On cmd
 
@@ -10,3 +10,9 @@ venv\Scripts\activate.bat
 
 
 python -m uvicorn main:app --reload
+
+## Video Demo
+
+https://youtu.be/gtwrYzI8PWU
+
+
