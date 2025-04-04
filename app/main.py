@@ -4,8 +4,8 @@ from typing import List, Optional
 from pydantic import BaseModel, EmailStr
 from fastapi.middleware.cors import CORSMiddleware
 from passlib.context import CryptContext
-from database import engine, get_db, Base, SessionLocal
-from models import User, Post, Tag, Rating
+from .database import engine, get_db, Base
+from .models import User, Post, Tag, Rating
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from datetime import datetime, timedelta
 import jwt
