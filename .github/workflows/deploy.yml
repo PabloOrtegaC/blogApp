@@ -22,8 +22,8 @@ jobs:
 
       - name: Write GCP Service Account Key to File
         run: |
-          echo "${{ secrets.GCP_SA_KEY }}" | sed 's/\\n/\n/g' > ${HOME}/gcloud-service-key.json
-
+          printf '%b' "${{ secrets.GCP_SA_KEY }}" > ${HOME}/gcloud-service-key.json
+        
       - name: Authenticate with Google Cloud
         run: |
           gcloud auth activate-service-account --key-file=${HOME}/gcloud-service-key.json
