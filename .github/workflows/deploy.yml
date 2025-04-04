@@ -40,9 +40,14 @@ jobs:
         run: |
           docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/my-fastapi-app:${{ github.sha }}
 
+      - name: Set short SHA for template
+        id: set-short-sha
+        run: |
+          echo "SHORT_SHA=$(echo ${GITHUB_SHA} | cut -c1-8)" >> $GITHUB_ENV
+
       - name: Create New Instance Template with Updated Container Image
         run: |
-          TEMPLATE_NAME="container-template-fastapi-${{ github.sha.substring(0, 8) }}"
+          TEMPLATE_NAME="container-template-fastapi-${{ env.SHORT_SHA }}"
           gcloud compute instance-templates create-with-container $TEMPLATE_NAME \
             --machine-type=e2-medium \
             --boot-disk-size=10GB \
@@ -54,7 +59,7 @@ jobs:
         run: |
           ZONE="us-central1-c"
           INSTANCE_GROUP="blogapp-back"  # Replace with your instance group name
-          TEMPLATE_NAME="container-template-fastapi-${{ github.sha.substring(0, 8) }}"
+          TEMPLATE_NAME="container-template-fastapi-${{ env.SHORT_SHA }}"
           gcloud compute instance-groups managed rolling-action start-update $INSTANCE_GROUP \
             --version=template=$TEMPLATE_NAME \
             --zone=$ZONE --quiet
