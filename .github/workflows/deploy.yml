@@ -1,0 +1,53 @@
+name: Build and Deploy to API to GCP
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-deploy:
+    name: Build, Analyze, and Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Authenticate with Google Cloud
+        run: |
+          gcloud auth activate-service-account --key-file=${{ secrets.GCP_SA_KEY }}
+
+      - name: Build Docker Image
+        run: |
+          docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/my-fastapi-app:${{ github.sha }} .
+
+
+      # Step 6: Push the Docker image to Container Registry
+      - name: Push Docker Image to GCR
+        run: |
+          docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/my-fastapi-app:${{ github.sha }}
+
+      # Step 7: Deploy the new container image to your Compute Engine managed instance group
+      - name: Deploy to Compute Engine
+        run: |
+          # Set the zone and instance group name (update these values to match your environment)
+          ZONE="us-central1-c"
+          INSTANCE_GROUP="blogapp-back"  # Replace with your instance group name
+
+          # New container image built from this commit
+          IMAGE="gcr.io/${{ secrets.GCP_PROJECT_ID }}/my-fastapi-app:${{ github.sha }}"
+
+          # Resize the instance group to ensure you have two instances
+          gcloud compute instance-groups managed resize $INSTANCE_GROUP --size=2 --zone=$ZONE
+
+          # Perform a rolling update to replace the container on the instances with the new image
+          gcloud compute instance-groups managed rolling-action start-update $INSTANCE_GROUP \
+            --version=template=container-vm-template,container-image=$IMAGE \
+            --zone=$ZONE
