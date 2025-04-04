@@ -28,6 +28,10 @@ jobs:
         run: |
           gcloud auth activate-service-account --key-file=${HOME}/gcloud-service-key.json
 
+      - name: Configure Docker for GCR
+        run: |
+          gcloud auth configure-docker
+
       - name: Build Docker Image
         run: |
           docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/my-fastapi-app:${{ github.sha }} .
@@ -48,5 +52,6 @@ jobs:
           # Resize the instance group to ensure you have two instances
           gcloud compute instance-groups managed resize $INSTANCE_GROUP --size=2 --zone=$ZONE
 
-          # Update the container image for the managed instance group
+          # Perform a rolling update to replace the container on the instances with the new image
           gcloud compute instance-groups managed update-container $INSTANCE_GROUP --container-image=$IMAGE --zone=$ZONE
+
