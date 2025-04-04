@@ -1,4 +1,4 @@
-name: Build and Deploy to API to GCP
+name: Build and Deploy API to GCP
 
 on:
   push:
@@ -22,24 +22,20 @@ jobs:
 
       - name: Write GCP Service Account Key to File
         run: |
-          echo "${{ secrets.GCP_SA_KEY }}" > ${HOME}/gcloud-service-key.json
+          printf '%s' "${{ secrets.GCP_SA_KEY }}" > ${HOME}/gcloud-service-key.json
         
       - name: Authenticate with Google Cloud
         run: |
           gcloud auth activate-service-account --key-file=${HOME}/gcloud-service-key.json
-      
 
       - name: Build Docker Image
         run: |
           docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/my-fastapi-app:${{ github.sha }} .
 
-
-      # Step 6: Push the Docker image to Container Registry
       - name: Push Docker Image to GCR
         run: |
           docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/my-fastapi-app:${{ github.sha }}
 
-      # Step 7: Deploy the new container image to your Compute Engine managed instance group
       - name: Deploy to Compute Engine
         run: |
           # Set the zone and instance group name (update these values to match your environment)
