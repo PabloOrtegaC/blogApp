@@ -40,20 +40,23 @@ jobs:
         run: |
           docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/my-fastapi-app:${{ github.sha }}
 
-      - name: Deploy to Compute Engine
+      - name: Create New Instance Template with Updated Container Image
         run: |
-          # Set the zone and instance group name (update these values to match your environment)
+          TEMPLATE_NAME="container-template-fastapi-${{ github.sha }}"
+          gcloud compute instance-templates create $TEMPLATE_NAME \
+            --machine-type=e2-medium \
+            --boot-disk-size=10GB \
+            --boot-disk-type=pd-standard \
+            --image-family=cos-stable \
+            --image-project=cos-cloud \
+            --container-image=gcr.io/${{ secrets.GCP_PROJECT_ID }}/my-fastapi-app:${{ github.sha }} \
+            --quiet
+
+      - name: Update Managed Instance Group with New Template
+        run: |
           ZONE="us-central1-c"
           INSTANCE_GROUP="blogapp-back"  # Replace with your instance group name
-
-          # New container image built from this commit
-          IMAGE="gcr.io/${{ secrets.GCP_PROJECT_ID }}/my-fastapi-app:${{ github.sha }}"
-
-          # Resize the instance group to ensure you have two instances
-          gcloud compute instance-groups managed resize $INSTANCE_GROUP --size=2 --zone=$ZONE
-
-          # Pre-install beta components to avoid interactive prompts
-          gcloud components install beta --quiet
-
-          # Update the container image using the beta command with --quiet to auto-accept prompts
-          gcloud beta compute instance-groups managed update-container $INSTANCE_GROUP --container-image=$IMAGE --zone=$ZONE --quiet
+          TEMPLATE_NAME="container-template-fastapi-${{ github.sha }}"
+          gcloud compute instance-groups managed rolling-action start-update $INSTANCE_GROUP \
+            --version=template=$TEMPLATE_NAME \
+            --zone=$ZONE --quiet
