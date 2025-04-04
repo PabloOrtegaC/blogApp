@@ -45,6 +45,12 @@ jobs:
         run: |
           echo "SHORT_SHA=$(echo ${GITHUB_SHA} | cut -c1-8)" >> $GITHUB_ENV
 
+      - name: Delete Old Instance Template if Exists
+        run: |
+          TEMPLATE_NAME="container-template-fastapi-${{ env.SHORT_SHA }}"
+          # Delete the template if it exists; ignore errors if it doesn't
+          gcloud compute instance-templates delete $TEMPLATE_NAME --quiet || true
+
       - name: Create New Instance Template with Updated Container Image
         run: |
           TEMPLATE_NAME="container-template-fastapi-${{ env.SHORT_SHA }}"
