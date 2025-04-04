@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 from pydantic import BaseModel, EmailStr
 from fastapi.middleware.cors import CORSMiddleware
 from passlib.context import CryptContext
@@ -9,7 +9,6 @@ from models import User, Post, Tag, Rating
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from datetime import datetime, timedelta
 import jwt
-from typing import Optional
 
 SECRET_KEY = "BlogSecret007"
 ALGORITHM = "HS256"
@@ -17,7 +16,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
-# depenency for endpont protection
+# Dependency for endpoint protection
 async def get_current_user(
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db)
@@ -40,15 +39,12 @@ async def get_current_user(
         raise credentials_exception
     return user
 
-
-
 app = FastAPI()
 
 origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
 ]
-
 
 app.add_middleware(
     CORSMiddleware,
@@ -57,9 +53,13 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Create all tables
 Base.metadata.create_all(bind=engine)
 
-# pydantic schemas
+# -------------------------
+# Pydantic Schemas
+# -------------------------
 class TagBase(BaseModel):
     name: str
 
@@ -77,7 +77,6 @@ class RatingBase(BaseModel):
 class RatingCreate(RatingBase):
     post_id: int
 
-
 class RatingResponse(RatingBase):
     id: int
     post_id: int
@@ -90,8 +89,7 @@ class PostBase(BaseModel):
     content: str
 
 class PostCreate(PostBase):
-    tags: List[str] 
-
+    tags: List[str]
 
 class PostUpdate(BaseModel):
     title: Optional[str] = None
@@ -101,12 +99,11 @@ class PostUpdate(BaseModel):
 class PostResponse(PostBase):
     id: int
     author_id: int
-    author_name: str  # new field to hold the author's name
+    author_name: str  # holds the author's name
     tags: List[TagResponse] = []
     ratings: List[RatingResponse] = []
     class Config:
         from_attributes = True
-
 
 class UserBase(BaseModel):
     name: str
@@ -121,11 +118,20 @@ class UserResponse(UserBase):
     class Config:
         from_attributes = True
 
+# -------------------------
+# Endpoints
+# -------------------------
 
-# endpoints
+# Health check endpoint
+@app.get("/health", tags=["Health Check"])
+def health_check():
+    """
+    Health check endpoint to verify the application is running.
+    Returns a simple JSON response with status and timestamp.
+    """
+    return {"status": "ok", "timestamp": datetime.utcnow()}
 
-# create a user
-
+# Create a user
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def get_password_hash(password: str) -> str:
@@ -144,8 +150,7 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
     db.refresh(db_user)
     return db_user
 
-
-#login
+# Login
 @app.post("/token/")
 def login_for_access_token(
     form_data: OAuth2PasswordRequestForm = Depends(),
@@ -165,12 +170,10 @@ def login_for_access_token(
     return {
         "access_token": access_token,
         "token_type": "bearer",
-        "user_id": user.id  # Include the user id in the response
+        "user_id": user.id
     }
 
-
-
-# get all users
+# Get all users
 @app.get("/users/", response_model=List[UserResponse])
 def get_users(db: Session = Depends(get_db)):
     users = db.query(User).all() 
@@ -178,7 +181,7 @@ def get_users(db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="No users found")
     return users
 
-# create a post
+# Create a post
 @app.post("/posts/create/", response_model=PostResponse)
 def create_post(
     post: PostCreate,
@@ -202,8 +205,7 @@ def create_post(
     db.refresh(db_post)
     return db_post
 
-
-#update post
+# Update a post
 @app.put("/posts/{post_id}/", response_model=PostResponse)
 def update_post(
     post_id: int,
@@ -215,19 +217,15 @@ def update_post(
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
     
-    # Verify that the authenticated user is the owner
     if post.author_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not authorized to update this post")
     
-    # Update fields if provided
     if post_update.title is not None:
         post.title = post_update.title
     if post_update.content is not None:
         post.content = post_update.content
     
-    # Update tags if provided
     if post_update.tags is not None:
-        # Clear existing tags
         post.tags = []
         for tag_name in post_update.tags:
             existing_tag = db.query(Tag).filter(Tag.name == tag_name).first()
@@ -236,16 +234,14 @@ def update_post(
             else:
                 new_tag = Tag(name=tag_name)
                 db.add(new_tag)
-                db.flush()  # Get new_tag's id before committing
+                db.flush()
                 post.tags.append(new_tag)
     
     db.commit()
     db.refresh(post)
     return post
 
-
-#delete post
-
+# Delete a post
 @app.delete("/posts/{post_id}/")
 def delete_post(
     post_id: int,
@@ -256,7 +252,6 @@ def delete_post(
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
     
-    # Verify that the post belongs to the current user.
     if post.author_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not authorized to delete this post")
     
@@ -264,8 +259,7 @@ def delete_post(
     db.commit()
     return {"detail": "Post deleted successfully"}
 
-
-#get a specific post using post id
+# Get a specific post by post id
 @app.get("/posts/{post_id}", response_model=PostResponse)
 def get_post(post_id: int, db: Session = Depends(get_db)):
     post = db.query(Post).filter(Post.id == post_id).first()
@@ -273,7 +267,7 @@ def get_post(post_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Post not found")
     return post
 
-#get a specific post using user id
+# Get posts by current user
 @app.get("/users/me/posts", response_model=List[PostResponse])
 def get_my_posts(
     current_user: User = Depends(get_current_user),
@@ -284,7 +278,7 @@ def get_my_posts(
         raise HTTPException(status_code=404, detail="No posts found")
     return posts
 
-# get all posts
+# Get all posts
 @app.get("/posts/", response_model=List[PostResponse])
 def get_posts(db: Session = Depends(get_db)):
     posts = db.query(Post).all() 
@@ -292,7 +286,7 @@ def get_posts(db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="No posts found")
     return posts
 
-# create a tag
+# Create a tag
 @app.post("/tags/create/", response_model=TagResponse)
 def create_tag(tag: TagCreate, db: Session = Depends(get_db)):
     db_tag = Tag(name=tag.name)
@@ -301,57 +295,45 @@ def create_tag(tag: TagCreate, db: Session = Depends(get_db)):
     db.refresh(db_tag)
     return db_tag
 
-# get all tags
+# Get all tags
 @app.get("/tags/", response_model=List[TagResponse])
 def get_tags(db: Session = Depends(get_db)):
     return db.query(Tag).all()
 
-#create a rating
+# Create a rating
 @app.post("/ratings/create/", response_model=RatingResponse)
 def rate_post(
     rating: RatingCreate,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    # Ensure the post exists
     post = db.query(Post).filter(Post.id == rating.post_id).first()
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
     
-    # Check if a rating by this user for this post already exists
     existing_rating = db.query(Rating).filter(
         Rating.post_id == rating.post_id,
         Rating.user_id == current_user.id
     ).first()
     
     if existing_rating:
-        # Overwrite the rating score
         existing_rating.score = rating.score
         db.commit()
         db.refresh(existing_rating)
         return existing_rating
     else:
-        # Create a new rating
         new_rating = Rating(score=rating.score, post_id=rating.post_id, user_id=current_user.id)
         db.add(new_rating)
         db.commit()
         db.refresh(new_rating)
         return new_rating
 
-
-# egt the ratings to a post using post id
+# Get ratings for a post
 @app.get("/posts/{post_id}/ratings", response_model=List[RatingResponse])
 def get_post_ratings(post_id: int, db: Session = Depends(get_db)):
     return db.query(Rating).filter(Rating.post_id == post_id).all()
 
-
-
-
-
-
-# helper funct tokens
-
-
+# Helper functions for authentication
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
@@ -367,6 +349,3 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
-
-
-
