@@ -22,11 +22,15 @@ jobs:
 
       - name: Write GCP Service Account Key to File
         run: |
-          echo "${{ secrets.GCP_SA_KEY_B64 }}" | base64 --decode > ${HOME}/gcloud-service-key.json
-
+          printf '%b' "${{ secrets.GCP_SA_KEY }}" > ${HOME}/gcloud-service-key.json
+        
       - name: Authenticate with Google Cloud
         run: |
           gcloud auth activate-service-account --key-file=${HOME}/gcloud-service-key.json
+
+      - name: Configure Docker for GCR
+        run: |
+          gcloud auth configure-docker
 
       - name: Build Docker Image
         run: |
