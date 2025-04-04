@@ -43,12 +43,10 @@ jobs:
       - name: Create New Instance Template with Updated Container Image
         run: |
           TEMPLATE_NAME="container-template-fastapi-${{ github.sha }}"
-          gcloud compute instance-templates create $TEMPLATE_NAME \
+          gcloud compute instance-templates create-with-container $TEMPLATE_NAME \
             --machine-type=e2-medium \
             --boot-disk-size=10GB \
             --boot-disk-type=pd-standard \
-            --image-family=cos-stable \
-            --image-project=cos-cloud \
             --container-image=gcr.io/${{ secrets.GCP_PROJECT_ID }}/my-fastapi-app:${{ github.sha }} \
             --quiet
 
