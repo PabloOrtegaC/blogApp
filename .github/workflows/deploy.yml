@@ -42,7 +42,8 @@ jobs:
 
       - name: Create New Instance Template with Updated Container Image
         run: |
-          TEMPLATE_NAME="container-template-fastapi-${{ github.sha }}"
+          # Use only the first 8 characters of the commit SHA to ensure the name is valid
+          TEMPLATE_NAME="container-template-fastapi-${{ github.sha[0:8] }}"
           gcloud compute instance-templates create-with-container $TEMPLATE_NAME \
             --machine-type=e2-medium \
             --boot-disk-size=10GB \
@@ -54,7 +55,7 @@ jobs:
         run: |
           ZONE="us-central1-c"
           INSTANCE_GROUP="blogapp-back"  # Replace with your instance group name
-          TEMPLATE_NAME="container-template-fastapi-${{ github.sha }}"
+          TEMPLATE_NAME="container-template-fastapi-${{ github.sha[0:8] }}"
           gcloud compute instance-groups managed rolling-action start-update $INSTANCE_GROUP \
             --version=template=$TEMPLATE_NAME \
             --zone=$ZONE --quiet
