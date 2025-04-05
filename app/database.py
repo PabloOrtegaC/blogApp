@@ -11,6 +11,8 @@ if os.getenv("ENV") != "production":
 
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./test.db")
 
+print("Current DB URL: ", DATABASE_URL)
+
 engine = create_engine(
     DATABASE_URL,
 
