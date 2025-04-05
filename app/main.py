@@ -8,15 +8,16 @@ from .database import engine, get_db, Base
 from .models import User, Post, Tag, Rating
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from datetime import datetime, timedelta
+import os
 import jwt
 
-SECRET_KEY = "BlogSecret007"
+# Read SECRET_KEY from environment, provide fallback for local dev.
+SECRET_KEY = os.getenv("AUTH_SECRET", "fallback-key-for-dev-only")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
-# Dependency for endpoint protection
 async def get_current_user(
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db)
@@ -50,7 +51,6 @@ origins = [
     "http://storage.googleapis.com",
 ]
 
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,  # Allow these origins
@@ -59,12 +59,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Create all tables
 Base.metadata.create_all(bind=engine)
 
-# -------------------------
 # Pydantic Schemas
-# -------------------------
 class TagBase(BaseModel):
     name: str
 
@@ -123,20 +120,10 @@ class UserResponse(UserBase):
     class Config:
         from_attributes = True
 
-# -------------------------
-# Endpoints
-# -------------------------
-
-# Health check endpoint
 @app.get("/health", tags=["Health Check"])
 def health_check():
-    """
-    Health check endpoint to verify the application is running.
-    Returns a simple JSON response with status and timestamp.
-    """
     return {"status": "ok", "timestamp": datetime.utcnow()}
 
-# Create a user
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def get_password_hash(password: str) -> str:
@@ -155,7 +142,6 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
     db.refresh(db_user)
     return db_user
 
-# Login
 @app.post("/token/")
 def login_for_access_token(
     form_data: OAuth2PasswordRequestForm = Depends(),
@@ -178,15 +164,13 @@ def login_for_access_token(
         "user_id": user.id
     }
 
-# Get all users
 @app.get("/users/", response_model=List[UserResponse])
 def get_users(db: Session = Depends(get_db)):
-    users = db.query(User).all() 
+    users = db.query(User).all()
     if not users:
         raise HTTPException(status_code=404, detail="No users found")
     return users
 
-# Create a post
 @app.post("/posts/create/", response_model=PostResponse)
 def create_post(
     post: PostCreate,
@@ -210,7 +194,6 @@ def create_post(
     db.refresh(db_post)
     return db_post
 
-# Update a post
 @app.put("/posts/{post_id}/", response_model=PostResponse)
 def update_post(
     post_id: int,
@@ -246,7 +229,6 @@ def update_post(
     db.refresh(post)
     return post
 
-# Delete a post
 @app.delete("/posts/{post_id}/")
 def delete_post(
     post_id: int,
@@ -264,7 +246,6 @@ def delete_post(
     db.commit()
     return {"detail": "Post deleted successfully"}
 
-# Get a specific post by post id
 @app.get("/posts/{post_id}", response_model=PostResponse)
 def get_post(post_id: int, db: Session = Depends(get_db)):
     post = db.query(Post).filter(Post.id == post_id).first()
@@ -272,7 +253,6 @@ def get_post(post_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Post not found")
     return post
 
-# Get posts by current user
 @app.get("/users/me/posts", response_model=List[PostResponse])
 def get_my_posts(
     current_user: User = Depends(get_current_user),
@@ -283,7 +263,6 @@ def get_my_posts(
         raise HTTPException(status_code=404, detail="No posts found")
     return posts
 
-# Get all posts
 @app.get("/posts/", response_model=List[PostResponse])
 def get_posts(db: Session = Depends(get_db)):
     posts = db.query(Post).all() 
@@ -291,7 +270,6 @@ def get_posts(db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="No posts found")
     return posts
 
-# Create a tag
 @app.post("/tags/create/", response_model=TagResponse)
 def create_tag(tag: TagCreate, db: Session = Depends(get_db)):
     db_tag = Tag(name=tag.name)
@@ -300,12 +278,10 @@ def create_tag(tag: TagCreate, db: Session = Depends(get_db)):
     db.refresh(db_tag)
     return db_tag
 
-# Get all tags
 @app.get("/tags/", response_model=List[TagResponse])
 def get_tags(db: Session = Depends(get_db)):
     return db.query(Tag).all()
 
-# Create a rating
 @app.post("/ratings/create/", response_model=RatingResponse)
 def rate_post(
     rating: RatingCreate,
@@ -333,12 +309,6 @@ def rate_post(
         db.refresh(new_rating)
         return new_rating
 
-# Get ratings for a post
-@app.get("/posts/{post_id}/ratings", response_model=List[RatingResponse])
-def get_post_ratings(post_id: int, db: Session = Depends(get_db)):
-    return db.query(Rating).filter(Rating.post_id == post_id).all()
-
-# Helper functions for authentication
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 

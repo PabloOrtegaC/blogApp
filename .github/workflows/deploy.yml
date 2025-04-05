@@ -52,8 +52,9 @@ jobs:
 
       - name: Create New Instance Template with Updated Container Image
         run: |
-          # Store the DB URL in a local variable so that we can quote it safely.
+          # Store environment variables safely in shell variables
           DB_URL="${{ secrets.DATABASE_URL }}"
+          AUTH_SECRET="${{ secrets.AUTH_SECRET }}"
           TEMPLATE_NAME="container-template-fastapi-${{ env.SHORT_SHA }}"
 
           gcloud compute instance-templates create-with-container "$TEMPLATE_NAME" \
@@ -63,6 +64,7 @@ jobs:
             --container-image="gcr.io/${{ secrets.GCP_PROJECT_ID }}/my-fastapi-app:${{ github.sha }}" \
             --container-env="ENV=production" \
             --container-env="DATABASE_URL=$DB_URL" \
+            --container-env="AUTH_SECRET=$AUTH_SECRET" \
             --tags=back-instances \
             --quiet
 
