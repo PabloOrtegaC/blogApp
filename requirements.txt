@@ -9,3 +9,4 @@ pyjwt==2.10.1
 python-multipart==0.0.20
 sqlalchemy==2.0.37
 uvicorn==0.34.0
+psycopg2==2.9.6
