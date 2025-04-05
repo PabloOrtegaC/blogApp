@@ -46,6 +46,8 @@ origins = [
     "http://127.0.0.1:5173",
     "http://blogappfront.storage.googleapis.com",
     "https://blogappfront.storage.googleapis.com", 
+    "https://storage.googleapis.com",
+    "http://storage.googleapis.com",
 ]
 
 app.add_middleware(
