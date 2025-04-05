@@ -16,3 +16,6 @@ python -m uvicorn main:app --reload
 https://youtu.be/CseA9MMoa4Y
 
 
+
+
+https://storage.googleapis.com/blogappfront/index.html
