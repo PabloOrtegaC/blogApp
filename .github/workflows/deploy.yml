@@ -58,7 +58,7 @@ jobs:
             --boot-disk-size=10GB \
             --boot-disk-type=pd-standard \
             --container-image=gcr.io/${{ secrets.GCP_PROJECT_ID }}/my-fastapi-app:${{ github.sha }} \
-            --container-env ENV=production \
+            --container-env ENV=production,DATABASE_URL=${{ secrets.DATABASE_URL }} \
             --tags=back-instances \
             --quiet
 
